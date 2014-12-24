@@ -1,0 +1,7 @@
+Vagrant.configure( "2" ) do |config|
+    config.vm.provider( "docker" ) do |d|
+        d.image = "mtinside/influxdb-test"
+        #d.cmd = The influxdb-test Docker image contains a CMD directive, so no need to specify the command to run
+        d.ports = [ "8083:8083", "8086:8086", "8090:8090", "8099:8099" ]
+    end
+end
