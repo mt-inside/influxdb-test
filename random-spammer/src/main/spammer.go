@@ -1,27 +1,56 @@
 package main
 
-import "github.com/influxdb/influxdb/client"
+import (
+    "strconv"
+    "time"
+    "github.com/influxdb/influxdb/client"
+)
+
+const boxen = 1000
+const datums = 10
 
 func main( ) {
-    spam( )
+
+    done := make( chan bool )
+    finished := 0
+
+    for i := 0; i < boxen; i++ {
+	go spam( i, done )
+    }
+
+    for
+    {
+	// Have to block this goroutine until the network transaction has finished,
+	// as this one ending seems to kill them all.
+	<- done
+	if finished++; finished == boxen { break }
+    }
 }
 
-func spam( ) {
+func spam( box int, done chan bool ) {
+
     c, err := client.NewClient( &client.ClientConfig{
-	Database: "enway",
+	Database: "load",
     } )
     if err != nil {
 	panic(err)
     }
 
     series := &client.Series {
-	Name: "load",
+	Name: "box" + strconv.Itoa( box ),
 	Columns: []string{ "cpu", "ram" },
-	Points: [][]interface{} { {20,100}, },
     }
 
-    err = c.WriteSeries([]*client.Series{ series } )
-    if err != nil {
-	panic(err)
+    for i := 0; i < datums; i++ {
+	series.Points = [][]interface{} { { 20+i , 100 }, }
+
+	err = c.WriteSeries([]*client.Series{ series } )
+	if err != nil {
+	    panic(err)
+	}
+
+	time.Sleep( 1 * time.Second )
     }
+
+    done <- true
 }
