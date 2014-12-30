@@ -2,6 +2,7 @@ package main
 
 import (
     "strconv"
+    "sync"
     "time"
     "github.com/influxdb/influxdb/client"
 )
@@ -11,23 +12,19 @@ const datums = 10
 
 func main( ) {
 
-    done := make( chan bool )
-    finished := 0
+    var waiter sync.WaitGroup
 
     for i := 0; i < boxen; i++ {
-	go spam( i, done )
+	waiter.Add( 1 )
+	go spam( i, &waiter )
     }
 
-    for
-    {
-	// Have to block this goroutine until the network transaction has finished,
-	// as this one ending seems to kill them all.
-	<- done
-	if finished++; finished == boxen { break }
-    }
+    waiter.Wait()
 }
 
-func spam( box int, done chan bool ) {
+func spam( box int, waiter *sync.WaitGroup ) {
+
+    defer waiter.Done()
 
     c, err := client.NewClient( &client.ClientConfig{
 	Database: "load",
@@ -51,6 +48,4 @@ func spam( box int, done chan bool ) {
 
 	time.Sleep( 1 * time.Second )
     }
-
-    done <- true
 }
