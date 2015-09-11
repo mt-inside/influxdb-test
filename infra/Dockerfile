@@ -22,4 +22,4 @@ EXPOSE 8086
 #EXPOSE 8099
 
 
-ENTRYPOINT /opt/influxdb/versions/*/influxd
+ENTRYPOINT /opt/influxdb/influxd
